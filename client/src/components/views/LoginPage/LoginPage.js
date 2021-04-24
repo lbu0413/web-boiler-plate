@@ -2,10 +2,11 @@ import axios from 'axios';
 import React, {useState} from 'react';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../../_actions/user_action.js';
+import { withRouter } from 'react-router-dom';
 
 
 
-function LoginPage() {
+function LoginPage(props) {
     const dispatch = useDispatch();
 
     const [email, setEmail] = useState('');
@@ -28,12 +29,20 @@ function LoginPage() {
         }
 
         dispatch(loginUser(body))
+            .then(res => {
+                if(res.payload.loginSuccess) {
+                    props.history.push('/')
+                } else {
+                    alert('Error');
+                }
+            })
 
         
     }
 
 
     return (
+        
         <div style={{ 
             display: 'flex', 
             justifyContent: 'center', 
@@ -41,7 +50,9 @@ function LoginPage() {
             width: '100%',
             height: '100vh'
         }}>
+            
             <form onSubmit={onSubmitHandler} style={{ display: 'flex', flexDirection: 'column'}}>
+                <h1>Sign In</h1>
                 <label>Email</label>
                 <input type="email" value={email} onChange={onEmailHandler}/>
                 <label>Password</label>
@@ -54,4 +65,4 @@ function LoginPage() {
     )
 }
 
-export default LoginPage
+export default withRouter(LoginPage)
