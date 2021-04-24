@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const port = 5000;
 const config = require('./config/key');
+const { auth } = require('./middleware/auth')
 const { User } = require('./models/User');
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -22,7 +23,9 @@ mongoose.connect(config.mongoURI, {
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
-app.post('/register', (req, res) => {
+app.get('/api/hello', (req, res) => res.send('Hello world'))
+
+app.post('/api/users/register', (req, res) => {
     const user = new User(req.body)
     user.save((err, userInfo) => {
         if(err) return res.json({ success: false, err })
@@ -30,7 +33,7 @@ app.post('/register', (req, res) => {
     })
 })
 
-app.post('/login', (req, res) => {
+app.post('/api/users/login', (req, res) => {
     // find requested email from db
     // if requested email exists in the db, check if password is accurate.
     // if password is accurate, generate token
@@ -56,6 +59,29 @@ app.post('/login', (req, res) => {
             })
         })
     })
+})
+
+app.get('/api/users/auth', auth, (req, res) => {
+   
+    res.status(200).json({
+        _id: req.user._id,
+        isAdmin: req.user.role === 0 ? false : true,
+        isAuth: true,
+        email: req.user.email,
+        name: req.user.name,
+        lastname: req.user.lastname,
+        role: req.user.role,
+        image: req.user.image
+    })
+})
+
+app.get('/api/users/logout', auth, (req, res) => {
+    User.findOneAndUpdate({ _id: req.user._id }, 
+        { token: ''},
+        (err, user ) => {
+            if(err) return res.json({ success: false, err });
+            return res.status(200).send({ success: true })
+        })
 })
 
 
